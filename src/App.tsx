@@ -46,6 +46,13 @@ export default function App() {
     history: [],
     companyIntel: null,
     domainTrack: 'Full-Stack Engineering',
+    yearsExperience: 5,
+    currentSalary: '',
+    currency: 'USD',
+    location: {
+      country: '',
+      city: '',
+    },
   });
 
   const [drillQuestions, setDrillQuestions] = useState<string[] | undefined>(undefined);
@@ -161,6 +168,9 @@ export default function App() {
                 }}
                 onUpdateResume={(resume) => updateState({ resume })}
                 onUpdateTrack={(domainTrack) => updateState({ domainTrack })}
+                onUpdateExperience={(yearsExperience) => updateState({ yearsExperience })}
+                onUpdateSalary={(currentSalary, currency) => updateState({ currentSalary, currency })}
+                onUpdateLocation={(country, city) => updateState({ location: { country, city } })}
                 onNavigate={navigate}
               />
             )}
@@ -239,6 +249,7 @@ export default function App() {
                 state={state} 
                 apiKey={apiKey}
                 onUpdateRoadmap={(roadmap) => updateState({ roadmap })}
+                onNavigate={navigate}
               />
             )}
 
@@ -246,6 +257,7 @@ export default function App() {
               <KnowledgeBaseView 
                 state={state} 
                 apiKey={apiKey}
+                onNavigate={navigate}
               />
             )}
 

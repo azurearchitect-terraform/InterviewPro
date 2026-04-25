@@ -4,17 +4,18 @@
  */
 
 import { useState } from 'react';
-import { Library, Search, ChevronRight, BookOpen, HardDrive, Shield, Network, RefreshCw } from 'lucide-react';
-import { AppState } from '../types';
+import { Library, Search, ChevronRight, BookOpen, HardDrive, Shield, Network, RefreshCw, ArrowLeft } from 'lucide-react';
+import { AppState, Screen } from '../types';
 import { callGemini } from '../services/gemini';
 import Markdown from 'react-markdown';
 
 interface KnowledgeBaseViewProps {
   state: AppState;
   apiKey: string;
+  onNavigate: (screen: Screen) => void;
 }
 
-export function KnowledgeBaseView({ state, apiKey }: KnowledgeBaseViewProps) {
+export function KnowledgeBaseView({ state, apiKey, onNavigate }: KnowledgeBaseViewProps) {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [content, setContent] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -59,9 +60,17 @@ Keep it professional, technical, and concise. Use Markdown.
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 animate-in fade-in duration-700">
       {/* Sidebar - Topics */}
       <div className="lg:col-span-4 space-y-8">
-        <header className="sticky top-16 z-40 -mx-4 px-4 py-8 bg-bg/80 backdrop-blur-md border-b border-white/5 mb-8">
-          <p className="text-[10px] uppercase tracking-[0.3em] text-accent mb-2">Central Archive</p>
-          <h1 className="font-serif italic text-3xl text-stone-100">Knowledge Base</h1>
+        <header className="sticky top-16 z-40 -mx-4 px-4 py-8 bg-bg/80 backdrop-blur-md border-b border-white/5 mb-8 flex items-center gap-6">
+           <button 
+             onClick={() => onNavigate(Screen.DASHBOARD)}
+             className="p-3 bg-surface-1 border border-white/5 rounded-xl text-stone-500 hover:text-accent transition-all group"
+           >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+           </button>
+           <div>
+              <p className="text-[10px] uppercase tracking-[0.3em] text-accent mb-1">Central Archive</p>
+              <h1 className="font-serif italic text-3xl text-stone-100">Knowledge Base</h1>
+           </div>
         </header>
 
         <div className="relative space-y-8">

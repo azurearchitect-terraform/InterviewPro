@@ -95,11 +95,16 @@ export const COMPANIES: Record<string, { tip: string, lp: string[], pattern?: st
     pattern: ['Online Assessment', 'Phone Interview', 'The Loop: 4-5 Rounds with Bar Raiser']
   },
   Apple:     { tip:'Demonstrate craftsmanship, attention to detail, and cross-functional collaboration.', lp:[] },
-  Microsoft: { tip:'Growth mindset, collaboration, and clarity of communication are central.', lp:[] },
-  Netflix:   { tip:'Senior-only culture — show independent judgment, context over control.', lp:[] },
+  Microsoft: { 
+    tip: 'Growth mindset, collaboration, and clarity of communication are central.', 
+    lp: ['Customer Obsession', 'Diverse Perspectives', 'Growth Mindset', 'Making a Difference'],
+    pattern: ['Recruiter Screen', 'Technical Screen', 'Onsite Loop: Coding, System Design, Behavioral (AA Round)']
+  },
+  Adobe:     { tip: 'Focus on creativity, customer experience, and digital transformation.', lp: [] },
+  NVIDIA:    { tip: 'Hard-core engineering, CUDA knowledge (usually), and problem solving under pressure.', lp: [] },
+  Netflix:   { tip: 'Senior-only culture — show independent judgment, context over control.', lp: [] },
   Stripe:    { tip:'Show rigorous thinking, user empathy, and comfort with ambiguity.', lp:[] },
   OpenAI:    { tip:'Research depth, safety awareness, and ambition to solve hard problems.', lp:[] },
-  Target:    { tip:'Focus on Omni-channel retail scale, strong collaboration, and inclusivity. Be ready for "Guest-first" logic.', lp:['Guest-centric','Teamwork','Innovation','Inclusion'] },
   Startup:   { tip:'Show scrappiness, versatility, and speed. Generalist wins here.', lp:[] },
   None:      { tip:'', lp:[] }
 };

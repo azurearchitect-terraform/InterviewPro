@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { Send, User, ChevronRight, AlertCircle, Mic, MicOff, Lightbulb, Sparkles, Clock } from 'lucide-react';
+import { Send, User, ChevronRight, AlertCircle, Mic, MicOff, Lightbulb, Sparkles, Clock, ArrowLeft } from 'lucide-react';
 import { AppState, Message, QuestionResult, Interviewer } from '../types';
 import { INTERVIEWERS } from '../constants';
 import { callGemini } from '../services/gemini';
@@ -186,17 +186,25 @@ Provide brief feedback (2 sentences) and a SCORE:N (1-10).
   return (
     <div id="screen-interview" className="max-w-4xl mx-auto flex flex-col h-[calc(100vh-140px)]">
       <header className="sticky top-0 z-40 bg-bg/80 backdrop-blur-md border-b border-white/5 mb-6 p-6 flex items-center justify-between rounded-b-3xl">
-        <div className="flex items-center gap-4">
-          <div 
-            className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl border border-white/5 shadow-2xl"
-            style={{ backgroundColor: currentInterviewer.bg }}
-          >
-            {currentInterviewer.emoji}
-          </div>
-          <div>
-            <div className="font-display font-extrabold italic text-stone-100 text-xl">{currentInterviewer.name}</div>
-            <div className="text-[10px] text-stone-500 uppercase tracking-widest font-black">{currentInterviewer.role}</div>
-          </div>
+        <div className="flex items-center gap-6">
+           <button 
+             onClick={onCancel}
+             className="p-3 bg-surface-1 border border-white/5 rounded-xl text-stone-500 hover:text-accent transition-all group"
+           >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+           </button>
+           <div className="flex items-center gap-4">
+              <div 
+                className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl border border-white/5 shadow-2xl"
+                style={{ backgroundColor: currentInterviewer.bg }}
+              >
+                {currentInterviewer.emoji}
+              </div>
+              <div>
+                <div className="font-display font-extrabold italic text-stone-100 text-xl">{currentInterviewer.name}</div>
+                <div className="text-[10px] text-stone-500 uppercase tracking-widest font-black">{currentInterviewer.role}</div>
+              </div>
+           </div>
         </div>
         
         <div className="flex items-center gap-8">

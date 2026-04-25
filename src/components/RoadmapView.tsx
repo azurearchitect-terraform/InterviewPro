@@ -4,17 +4,18 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Map, Sparkles, CheckCircle2, Circle, AlertCircle, RefreshCw } from 'lucide-react';
-import { AppState, RoadmapItem } from '../types';
+import { Map, Sparkles, CheckCircle2, Circle, AlertCircle, RefreshCw, ArrowLeft } from 'lucide-react';
+import { AppState, RoadmapItem, Screen } from '../types';
 import { callGemini } from '../services/gemini';
 
 interface RoadmapViewProps {
   state: AppState;
   apiKey: string;
   onUpdateRoadmap: (roadmap: RoadmapItem[]) => void;
+  onNavigate: (screen: Screen) => void;
 }
 
-export function RoadmapView({ state, apiKey, onUpdateRoadmap }: RoadmapViewProps) {
+export function RoadmapView({ state, apiKey, onUpdateRoadmap, onNavigate }: RoadmapViewProps) {
   const [loading, setLoading] = useState(false);
 
   const generateRoadmap = async () => {
@@ -53,12 +54,17 @@ Example: [{"category": "IaC", "topic": "Terraform Modules", "status": "todo", "i
   return (
     <div className="py-10 px-4">
       <header className="sticky top-16 z-40 -mx-4 px-4 py-8 bg-bg/80 backdrop-blur-md border-b border-white/5 mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.3em] text-accent mb-2">Curriculum Engine</p>
-          <h1 className="font-serif italic text-4xl text-stone-100">Learning Roadmap</h1>
-          <p className="text-stone-500 text-sm mt-2 max-w-xl">
-            A specialized curriculum derived from your target job description and current skill gaps.
-          </p>
+        <div className="flex items-center gap-6">
+           <button 
+             onClick={() => onNavigate(Screen.DASHBOARD)}
+             className="p-3 bg-surface-1 border border-white/5 rounded-xl text-stone-500 hover:text-accent transition-all group"
+           >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+           </button>
+           <div>
+              <p className="text-[10px] uppercase tracking-[0.3em] text-accent mb-2">Curriculum Engine</p>
+              <h1 className="font-serif italic text-4xl text-stone-100">Learning Roadmap</h1>
+           </div>
         </div>
         <button 
           onClick={generateRoadmap}

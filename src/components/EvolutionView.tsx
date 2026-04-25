@@ -4,7 +4,7 @@
  */
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
-import { TrendingUp, Calendar, Zap, Target, Award, List } from 'lucide-react';
+import { TrendingUp, Calendar, Zap, Target, Award, List, ArrowLeft } from 'lucide-react';
 import { AppState, Screen, HistoryItem } from '../types';
 
 interface EvolutionViewProps {
@@ -32,11 +32,19 @@ export function EvolutionView({ state, onNavigate }: EvolutionViewProps) {
   return (
     <div className="max-w-6xl mx-auto py-10 px-4 space-y-10">
       <header className="sticky top-16 z-40 -mx-4 px-4 py-8 bg-bg/80 backdrop-blur-md border-b border-white/5 mb-10 flex items-center justify-between">
-        <div>
-           <div className="text-[10px] font-black uppercase tracking-[0.4em] text-accent/60 mb-2 flex items-center gap-2">
-              <TrendingUp className="w-3 h-3" /> Career Evolution // LONG_TERM_TRACKING
+        <div className="flex items-center gap-6">
+           <button 
+             onClick={() => onNavigate(Screen.DASHBOARD)}
+             className="p-3 bg-surface-1 border border-white/5 rounded-xl text-stone-500 hover:text-accent transition-all group"
+           >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+           </button>
+           <div>
+              <div className="text-[10px] font-black uppercase tracking-[0.4em] text-accent/60 mb-2 flex items-center gap-2">
+                 <TrendingUp className="w-3 h-3" /> Career Evolution // LONG_TERM_TRACKING
+              </div>
+              <h2 className="text-3xl font-display font-black text-stone-100 italic tracking-tight uppercase">Performance Trajectory</h2>
            </div>
-           <h2 className="text-3xl font-display font-black text-stone-100 italic tracking-tight uppercase">Performance Trajectory</h2>
         </div>
         <button 
           onClick={() => onNavigate(Screen.DASHBOARD)}

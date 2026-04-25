@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { RotateCcw, LayoutDashboard, Zap, Trophy, CheckCircle, TrendingUp, Download, Ghost, AlertTriangle } from 'lucide-react';
+import { RotateCcw, LayoutDashboard, Zap, Trophy, CheckCircle, TrendingUp, Download, Ghost, AlertTriangle, ArrowLeft } from 'lucide-react';
 import { QuestionResult } from '../types';
 
 interface ResultsViewProps {
@@ -36,9 +36,19 @@ export function ResultsView({ results, onRestart, onReplay, onGoToDashboard }: R
 
   return (
     <div id="screen-results" className="max-w-4xl mx-auto py-10 px-4">
-      <header className="sticky top-16 z-40 -mx-4 px-4 py-8 bg-bg/80 backdrop-blur-md border-b border-white/5 mb-10 space-y-2">
-        <div className="text-[10px] font-black uppercase tracking-[0.4em] text-accent/60">Session Output // Terminated</div>
-        <h2 className="text-4xl font-display font-extrabold text-stone-100 italic tracking-tight">Predictive Results</h2>
+      <header className="sticky top-16 z-40 -mx-4 px-4 py-8 bg-bg/80 backdrop-blur-md border-b border-white/5 mb-10 flex items-center justify-between">
+        <div className="flex items-center gap-6">
+           <button 
+             onClick={onGoToDashboard}
+             className="p-3 bg-surface-1 border border-white/5 rounded-xl text-stone-500 hover:text-accent transition-all group"
+           >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+           </button>
+           <div>
+              <div className="text-[10px] font-black uppercase tracking-[0.4em] text-accent/60">Session Output // Terminated</div>
+              <h2 className="text-4xl font-display font-extrabold text-stone-100 italic tracking-tight">Predictive Results</h2>
+           </div>
+        </div>
       </header>
 
       <div className="bg-surface-1 border border-white/5 rounded-3xl p-12 text-center relative overflow-hidden bento-card">

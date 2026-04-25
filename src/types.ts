@@ -105,4 +105,11 @@ export interface AppState {
   mcqSession?: MCQSession;
   companyIntel: string | null;
   domainTrack: string;
+  yearsExperience: number;
+  currentSalary: string;
+  currency: string;
+  location: {
+    country: string;
+    city: string;
+  };
 }

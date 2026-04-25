@@ -4,7 +4,7 @@
  */
 
 import { useState } from 'react';
-import { Brain, Zap, ArrowRight, CheckCircle2, ChevronRight, BookOpen, PenTool, RefreshCw } from 'lucide-react';
+import { Brain, Zap, ArrowRight, CheckCircle2, ChevronRight, BookOpen, PenTool, RefreshCw, ArrowLeft } from 'lucide-react';
 import { AppState, Screen } from '../types';
 import { callGemini } from '../services/gemini';
 import ReactMarkdown from 'react-markdown';
@@ -80,11 +80,19 @@ Keep it dense, engineer-to-engineer. Focus on the blueprint, not just one proble
   return (
     <div className="max-w-6xl mx-auto py-10 px-4">
       <header className="mb-12 flex items-center justify-between">
-        <div>
-           <div className="text-[10px] font-black uppercase tracking-[0.4em] text-accent/60 mb-2 flex items-center gap-2">
-              <Brain className="w-3 h-3" /> Algorithms Hub // PATTERN_ENGINE
+        <div className="flex items-center gap-6">
+           <button 
+             onClick={() => onNavigate(Screen.DASHBOARD)}
+             className="p-3 bg-surface-1 border border-white/5 rounded-xl text-stone-500 hover:text-accent transition-all group"
+           >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+           </button>
+           <div>
+              <div className="text-[10px] font-black uppercase tracking-[0.4em] text-accent/60 mb-2 flex items-center gap-2">
+                 <Brain className="w-3 h-3" /> Algorithms Hub // PATTERN_ENGINE
+              </div>
+              <h2 className="text-4xl font-display font-black text-stone-100 italic tracking-tight uppercase">Pattern Mastery</h2>
            </div>
-           <h2 className="text-4xl font-display font-black text-stone-100 italic tracking-tight uppercase">Pattern Mastery</h2>
         </div>
         <button 
           onClick={() => onNavigate(Screen.DASHBOARD)}

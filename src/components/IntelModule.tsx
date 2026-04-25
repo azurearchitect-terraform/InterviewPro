@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Search, Globe, ShieldCheck, Zap, Info, RefreshCw, Layers, Building2 } from 'lucide-react';
+import { Search, Globe, ShieldCheck, Zap, Info, RefreshCw, Layers, Building2, ArrowLeft, AlertCircle } from 'lucide-react';
 import { AppState, Screen } from '../types';
 import { callGemini } from '../services/gemini';
 import ReactMarkdown from 'react-markdown';
@@ -49,11 +49,19 @@ export function IntelModule({ state, apiKey, onUpdateIntel, onNavigate }: IntelM
   return (
     <div className="max-w-4xl mx-auto py-10 px-4">
       <header className="sticky top-16 z-40 -mx-4 px-4 py-8 bg-bg/80 backdrop-blur-md border-b border-white/5 mb-10 flex items-center justify-between">
-        <div>
-           <div className="text-[10px] font-black uppercase tracking-[0.4em] text-accent/60 mb-2 flex items-center gap-2">
-              <ShieldCheck className="w-3 h-3" /> SECURITY_CLEARANCE_LVL_4 // DEEP_INTEL
+        <div className="flex items-center gap-6">
+           <button 
+             onClick={() => onNavigate(Screen.DASHBOARD)}
+             className="p-3 bg-surface-1 border border-white/5 rounded-xl text-stone-500 hover:text-accent transition-all group"
+           >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+           </button>
+           <div>
+              <div className="text-[10px] font-black uppercase tracking-[0.4em] text-accent/60 mb-2 flex items-center gap-2">
+                 <ShieldCheck className="w-3 h-3" /> SECURITY_CLEARANCE_LVL_4 // DEEP_INTEL
+              </div>
+              <h2 className="text-3xl font-display font-black text-stone-100 italic tracking-tight uppercase">Company Intelligence</h2>
            </div>
-           <h2 className="text-3xl font-display font-black text-stone-100 italic tracking-tight uppercase">Company Intelligence</h2>
         </div>
         <button 
           onClick={fetchIntel}

@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Timer, CheckCircle, XCircle, ChevronRight, Play, RefreshCw, AlertCircle, Clock, Trophy } from 'lucide-react';
+import { Timer, CheckCircle, XCircle, ChevronRight, Play, RefreshCw, AlertCircle, Clock, Trophy, ArrowLeft } from 'lucide-react';
 import { AppState, MCQSession, MCQQuestion } from '../types';
 import { callGemini } from '../services/gemini';
 
@@ -157,14 +157,19 @@ EXP: [one-sentence explanation]
   if (!session) {
     return (
       <div className="max-w-xl mx-auto py-10 px-4">
-        <header className="sticky top-16 z-40 -mx-4 px-4 py-8 bg-bg/80 backdrop-blur-md border-b border-white/5 mb-10 space-y-3">
-          <div className="text-[10px] font-black uppercase tracking-[0.4em] text-accent/60 flex items-center gap-2">
-             <Clock className="w-3 h-3" /> Module: QUICK_TEST
-          </div>
-          <h2 className="text-4xl font-display font-extrabold text-stone-100 italic tracking-tight">Timed Proficiency</h2>
-          <p className="text-stone-500 text-sm leading-relaxed">
-            Validate your technical depth with a randomized 10-question sequence.
-          </p>
+        <header className="sticky top-16 z-40 -mx-4 px-4 py-8 bg-bg/80 backdrop-blur-md border-b border-white/5 mb-10 flex items-center gap-6">
+           <button 
+             onClick={() => onNavigate('home')}
+             className="p-3 bg-surface-1 border border-white/5 rounded-xl text-stone-500 hover:text-accent transition-all group"
+           >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+           </button>
+           <div>
+              <div className="text-[10px] font-black uppercase tracking-[0.4em] text-accent/60 flex items-center gap-2">
+                 <Clock className="w-3 h-3" /> Module: QUICK_TEST
+              </div>
+              <h2 className="text-4xl font-display font-extrabold text-stone-100 italic tracking-tight">Timed Proficiency</h2>
+           </div>
         </header>
 
         <div className="bg-surface-1 border border-white/5 p-8 space-y-6 rounded-3xl bento-card relative overflow-hidden">

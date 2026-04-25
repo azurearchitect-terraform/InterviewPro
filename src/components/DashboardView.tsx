@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { LayoutDashboard, Target, BookOpen, Clock, TrendingUp, TrendingDown, ArrowRight, BrainCircuit, BarChart3, Brain, DollarSign } from 'lucide-react';
+import { LayoutDashboard, Target, BookOpen, Clock, TrendingUp, TrendingDown, ArrowRight, BrainCircuit, BarChart3, Brain, DollarSign, ArrowLeft } from 'lucide-react';
 import { AppState, Screen, SkillRating } from '../types';
 
 interface DashboardViewProps {
@@ -24,13 +24,20 @@ export function DashboardView({ state, onNavigate, onReset }: DashboardViewProps
   return (
     <div id="screen-dashboard" className="max-w-6xl mx-auto py-6 px-4">
       <header className="sticky top-16 z-40 -mx-4 px-4 py-10 bg-bg/80 backdrop-blur-md border-b border-white/5 mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="space-y-2">
-          <div className="text-[10px] font-black uppercase tracking-[0.4em] text-accent/60 flex items-center gap-2">
-            <LayoutDashboard className="w-3 h-3" />
-            Archive Status // Command Center
-          </div>
-          <h1 className="text-5xl font-display text-stone-100 font-extrabold tracking-tight">Intelligence Dashboard</h1>
-          <p className="text-stone-500 text-sm max-w-xl">Monitor your predictive performance metrics and career evolution trajectory.</p>
+        <div className="flex items-center gap-6">
+           <button 
+             onClick={() => onNavigate(Screen.HOME)}
+             className="p-3 bg-surface-1 border border-white/5 rounded-xl text-stone-500 hover:text-accent transition-all group"
+           >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+           </button>
+           <div className="space-y-2">
+              <div className="text-[10px] font-black uppercase tracking-[0.4em] text-accent/60 flex items-center gap-2">
+                <LayoutDashboard className="w-3 h-3" />
+                Archive Status // Command Center
+              </div>
+              <h1 className="text-5xl font-display text-stone-100 font-extrabold tracking-tight">Intelligence Dashboard</h1>
+           </div>
         </div>
         <div className="flex gap-4">
            <button 

@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { DollarSign, Briefcase, TrendingUp, Info, RefreshCw, BarChart4, Target, Building2, MapPin } from 'lucide-react';
+import { DollarSign, Briefcase, TrendingUp, Info, RefreshCw, BarChart4, Target, Building2, MapPin, ArrowLeft } from 'lucide-react';
 import { AppState, Screen } from '../types';
 import { callGemini } from '../services/gemini';
 import ReactMarkdown from 'react-markdown';
@@ -25,8 +25,17 @@ export function SalaryIntelligence({ state, apiKey, onNavigate }: SalaryIntellig
     setLoading(true);
     setError('');
 
-    const context = `Company: ${state.company || 'Tier 1 Tech'}, Level: ${state.level}, Role: ${state.domainTrack}`;
-    const prompt = `Provide real-world salary and offer benchmarks for: ${context}. Include: 1. Total Compensation (TC) breakdown (Base, Equity, Bonus) 2. Range for ${state.level} level 3. Recent negotiation leverage points 4. Benefits & Perks specific to ${state.company || 'this tier'}. Format as clean Markdown with a table if possible. Use data current as of late 2024/2025.`;
+    const locationStr = `${state.location.city}, ${state.location.country}`.trim() || 'Global';
+    const context = `Company: ${state.company || 'Tier 1 Tech'}, Level: ${state.level}, Role: ${state.domainTrack}, Exp: ${state.yearsExperience} years, Location: ${locationStr}, Current Salary: ${state.currentSalary} ${state.currency}`;
+    const prompt = `Provide real-world salary and offer benchmarks for: ${context}. 
+Specifically calculate:
+1. **Actual Market Segment**: Expected range for this ${state.level} role in ${locationStr} for someone with ${state.yearsExperience} years EXP.
+2. **Performance Variance**: How much more (or less) can a candidate get based on "Strong Hire" vs "Hire" interview performance? (e.g. impact on Equity/Sign-on).
+3. **Growth Vector**: Potential growth percentage from the candidate's current ${state.currentSalary} ${state.currency}.
+4. **Compensation Breakdown**: TC breakdown (Base, Equity, Bonus) in ${state.currency} or USD.
+5. **Negotiation Leverage**: Tactics for ${state.company} specifically.
+
+Format as clean Markdown with clear sections. Use a table for TC breakdown. Use data current as of late 2024/2025.`;
 
     try {
       const response = await callGemini(apiKey, prompt, 'You are an elite talent compensation consultant. provide precise, data-driven salary intelligence.', 'gemini-1.5-pro');
@@ -47,11 +56,19 @@ export function SalaryIntelligence({ state, apiKey, onNavigate }: SalaryIntellig
   return (
     <div className="max-w-4xl mx-auto py-10 px-4">
       <header className="sticky top-16 z-40 -mx-4 px-4 py-8 bg-bg/80 backdrop-blur-md border-b border-white/5 mb-10 flex items-center justify-between">
-        <div>
-           <div className="text-[10px] font-black uppercase tracking-[0.4em] text-accent/60 mb-2 flex items-center gap-2">
-              <DollarSign className="w-3 h-3" /> Compensation Intelligence // MARKET_BENCHMARKS
+        <div className="flex items-center gap-6">
+           <button 
+             onClick={() => onNavigate(Screen.DASHBOARD)}
+             className="p-3 bg-surface-1 border border-white/5 rounded-xl text-stone-500 hover:text-accent transition-all group"
+           >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+           </button>
+           <div>
+              <div className="text-[10px] font-black uppercase tracking-[0.4em] text-accent/60 mb-2 flex items-center gap-2">
+                 <DollarSign className="w-3 h-3" /> Compensation Intelligence // MARKET_BENCHMARKS
+              </div>
+              <h2 className="text-3xl font-display font-black text-stone-100 italic tracking-tight uppercase">Salary Outlook</h2>
            </div>
-           <h2 className="text-3xl font-display font-black text-stone-100 italic tracking-tight uppercase">Salary Outlook</h2>
         </div>
         <button 
           onClick={fetchSalaryData}
