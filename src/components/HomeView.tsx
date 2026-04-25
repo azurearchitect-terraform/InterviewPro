@@ -104,7 +104,7 @@ ${personalContext}`;
       <motion.header 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="sticky top-0 z-50 bg-bg/80 backdrop-blur-md -mx-4 px-4 py-8 mb-12 border-b border-white/5"
+        className="sticky top-16 z-50 bg-bg/80 backdrop-blur-md -mx-4 px-4 py-8 mb-12 border-b border-white/5"
       >
         <div className="flex items-center justify-between">
           <div>
@@ -127,7 +127,7 @@ ${personalContext}`;
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
          {/* Left Col: Target & Context */}
-         <div className="lg:col-span-4 space-y-10">
+         <div className="lg:col-span-3 space-y-10">
             <TrackSelector 
               currentTrack={state.domainTrack}
               onSelect={onUpdateTrack}
@@ -199,50 +199,6 @@ ${personalContext}`;
                        </select>
                     </div>
                  </div>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <div className="flex items-center gap-3 border-b border-white/5 pb-4">
-                <Building2 className="w-4 h-4 text-stone-500" />
-                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Target Corporation</h3>
-              </div>
-              <div className="grid grid-cols-1 gap-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                {Object.entries(COMPANIES).map(([name, info]) => (
-                  <button
-                    key={name}
-                    onClick={() => setSelectedCompany(name)}
-                    className={`p-4 text-left transition-all border rounded-2xl group ${
-                      selectedCompany === name 
-                        ? 'bg-accent/10 border-accent/40 text-accent-light' 
-                        : 'bg-black/20 border-white/5 text-stone-500 hover:border-white/10 hover:bg-white/[0.02]'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                        <span className={`text-[10px] font-bold uppercase tracking-widest transition-all ${
-                          selectedCompany === name ? 'translate-x-1' : 'group-hover:translate-x-0.5'
-                        }`}>{name}</span>
-                        {selectedCompany === name && <div className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse shadow-[0_0_8px_rgba(129,140,248,0.8)]"></div>}
-                    </div>
-                    
-                    {selectedCompany === name && (name !== 'None') && (
-                      <div className="mt-3 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                        <p className="text-[9px] text-stone-400 italic lowercase tracking-tight leading-relaxed line-clamp-2">
-                          "{info.tip}"
-                        </p>
-                        {info.pattern && (
-                          <div className="flex flex-wrap gap-1">
-                            {info.pattern.map((round, i) => (
-                              <span key={i} className="text-[7px] bg-black/40 px-1.5 py-0.5 rounded text-stone-300 uppercase truncate">
-                                {round.split('(')[0]}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </button>
-                ))}
               </div>
             </div>
          </div>
