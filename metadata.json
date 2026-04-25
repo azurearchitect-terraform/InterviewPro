@@ -1,0 +1,6 @@
+{
+  "name": "Aura Interview Coach",
+  "description": "An AI-powered interview simulator providing real-time coaching and role-specific drilling using Gemini.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
