@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { DollarSign, Briefcase, TrendingUp, Info, RefreshCw, BarChart4, Target, Building2, MapPin, ArrowLeft } from 'lucide-react';
-import { AppState, Screen } from '../types';
+import { AppState, Screen, RoleLevel } from '../types';
 import { callGemini } from '../services/gemini';
 import ReactMarkdown from 'react-markdown';
 
@@ -13,27 +13,34 @@ interface SalaryIntelligenceProps {
   state: AppState;
   apiKey: string;
   onNavigate: (screen: Screen) => void;
+  onUpdateLevel?: (level: RoleLevel) => void;
+  onUpdateCompany?: (company: string) => void;
 }
 
-export function SalaryIntelligence({ state, apiKey, onNavigate }: SalaryIntelligenceProps) {
+export function SalaryIntelligence({ state, apiKey, onNavigate, onUpdateLevel, onUpdateCompany }: SalaryIntelligenceProps) {
   const [data, setData] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [localLevel, setLocalLevel] = useState<RoleLevel>(state.level);
+  const [localCompany, setLocalCompany] = useState<string>(state.company || 'Tier 1 Tech');
 
-  const fetchSalaryData = async () => {
+  const fetchSalaryData = async (overrideParams?: { level?: RoleLevel, company?: string }) => {
     if (!apiKey) return;
     setLoading(true);
     setError('');
 
+    const levelToUse = overrideParams?.level || localLevel;
+    const companyToUse = overrideParams?.company || localCompany;
+
     const locationStr = `${state.location.city}, ${state.location.country}`.trim() || 'Global';
-    const context = `Company: ${state.company || 'Tier 1 Tech'}, Level: ${state.level}, Role: ${state.domainTrack}, Exp: ${state.yearsExperience} years, Location: ${locationStr}, Current Salary: ${state.currentSalary} ${state.currency}`;
+    const context = `Company: ${companyToUse}, Level: ${levelToUse}, Role: ${state.domainTracks.join(', ')}, Exp: ${state.yearsExperience} years, Location: ${locationStr}, Current Salary: ${state.currentSalary} ${state.currency}`;
     const prompt = `Provide real-world salary and offer benchmarks for: ${context}. 
 Specifically calculate:
-1. **Actual Market Segment**: Expected range for this ${state.level} role in ${locationStr} for someone with ${state.yearsExperience} years EXP.
+1. **Actual Market Segment**: Expected range for this ${levelToUse} role in ${locationStr} for someone with ${state.yearsExperience} years EXP.
 2. **Performance Variance**: How much more (or less) can a candidate get based on "Strong Hire" vs "Hire" interview performance? (e.g. impact on Equity/Sign-on).
 3. **Growth Vector**: Potential growth percentage from the candidate's current ${state.currentSalary} ${state.currency}.
 4. **Compensation Breakdown**: TC breakdown (Base, Equity, Bonus) in ${state.currency} or USD.
-5. **Negotiation Leverage**: Tactics for ${state.company} specifically.
+5. **Negotiation Leverage**: Tactics for ${companyToUse} specifically.
 
 Format as clean Markdown with clear sections. Use a table for TC breakdown. Use data current as of late 2024/2025.`;
 
@@ -45,6 +52,18 @@ Format as clean Markdown with clear sections. Use a table for TC breakdown. Use 
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleLevelChange = (lvl: RoleLevel) => {
+    setLocalLevel(lvl);
+    onUpdateLevel?.(lvl);
+    fetchSalaryData({ level: lvl });
+  };
+
+  const handleCompanyChange = (comp: string) => {
+    setLocalCompany(comp);
+    onUpdateCompany?.(comp);
+    fetchSalaryData({ company: comp });
   };
 
   useEffect(() => {
@@ -71,7 +90,7 @@ Format as clean Markdown with clear sections. Use a table for TC breakdown. Use 
            </div>
         </div>
         <button 
-          onClick={fetchSalaryData}
+          onClick={() => fetchSalaryData()}
           disabled={loading}
           className="p-3 rounded-xl bg-surface-2 border border-white/5 text-stone-500 hover:text-accent transition-all disabled:opacity-30"
         >
@@ -89,7 +108,7 @@ Format as clean Markdown with clear sections. Use a table for TC breakdown. Use 
       ) : error ? (
         <div className="bg-red-500/5 border border-red-500/10 p-10 rounded-3xl text-center">
           <p className="text-red-200 font-bold uppercase tracking-widest text-xs">{error}</p>
-          <button onClick={fetchSalaryData} className="mt-6 px-10 py-4 bg-red-400 text-black font-black uppercase text-[10px] tracking-widest rounded-2xl hover:bg-red-300 transition-all">Retry Probe</button>
+          <button onClick={() => fetchSalaryData()} className="mt-6 px-10 py-4 bg-red-400 text-black font-black uppercase text-[10px] tracking-widest rounded-2xl hover:bg-red-300 transition-all">Retry Probe</button>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -100,18 +119,32 @@ Format as clean Markdown with clear sections. Use a table for TC breakdown. Use 
                     <Target className="w-4 h-4 text-accent" />
                     <h3 className="text-[10px] font-black uppercase tracking-widest text-white">Target Parameters</h3>
                  </div>
-                 <div className="space-y-4 text-[10px] uppercase tracking-widest text-stone-500 font-bold">
-                    <div>
-                       <span className="block text-stone-700 mb-1">Entity</span>
-                       <span className="text-stone-300">{state.company || 'Tier 1 Tech'}</span>
+                 <div className="space-y-4 text-[10px] tracking-widest text-stone-500 font-bold">
+                    <div className="space-y-2">
+                       <span className="block text-stone-700 uppercase font-black">Target Entity</span>
+                       <input 
+                         type="text"
+                         value={localCompany}
+                         onChange={(e) => handleCompanyChange(e.target.value)}
+                         className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-[11px] text-white font-mono outline-none focus:border-accent ring-1 ring-white/5"
+                         placeholder="e.g. Google, Amazon..."
+                       />
+                    </div>
+                    <div className="space-y-2">
+                       <span className="block text-stone-700 uppercase font-black">Level Calibration</span>
+                       <select 
+                         value={localLevel}
+                         onChange={(e) => handleLevelChange(e.target.value as RoleLevel)}
+                         className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-[11px] text-white font-mono outline-none focus:border-accent appearance-none ring-1 ring-white/5"
+                       >
+                         {['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'Senior', 'Staff', 'Lead', 'Executive'].map(l => (
+                            <option key={l} value={l}>{l.toUpperCase()}</option>
+                         ))}
+                       </select>
                     </div>
                     <div>
-                       <span className="block text-stone-700 mb-1">Level Group</span>
-                       <span className="text-stone-300">{state.level}</span>
-                    </div>
-                    <div>
-                       <span className="block text-stone-700 mb-1">Domain</span>
-                       <span className="text-stone-300">{state.domainTrack}</span>
+                       <span className="block text-stone-700 mb-1 uppercase font-black">Domain Group</span>
+                       <span className="text-stone-300 block p-3 bg-black/20 border border-white/5 rounded-xl text-[11px] font-mono">{state.domainTracks.join(' | ') || 'GENERIC'}</span>
                     </div>
                  </div>
               </div>

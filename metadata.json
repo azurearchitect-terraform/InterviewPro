@@ -1,6 +1,6 @@
 {
-  "name": "Aura Interview Coach",
-  "description": "An AI-powered interview simulator providing real-time coaching and role-specific drilling using Gemini.",
-  "requestFramePermissions": [],
+  "name": "INTERVIEW_AUDITOR",
+  "description": "Tactical dark-mode interview simulation and neural intelligence extraction. Calibrate for high-stakes assessments with real-time feedback.",
+  "requestFramePermissions": ["microphone"],
   "majorCapabilities": []
 }

@@ -91,17 +91,17 @@ export function ResumeUpload({ onUpload, currentResume }: ResumeUploadProps) {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <label className="text-[10px] font-black uppercase tracking-widest text-stone-600 flex items-center gap-2">
-          <FileText className="w-3 h-3" /> Resume Intelligence
+    <div className="bento-card p-6 space-y-4">
+      <div className="flex items-center justify-between border-b border-white/5 pb-4">
+        <label className="text-sm font-black uppercase tracking-[0.2em] text-white flex items-center gap-3">
+          <FileText className="w-4 h-4 text-stone-400" /> Resume Intel
         </label>
         {currentResume && (
           <button 
             onClick={clearResume}
-            className="text-[9px] uppercase tracking-wider text-red-500/60 hover:text-red-400 transition-colors flex items-center gap-1"
+            className="text-[9px] uppercase tracking-widest font-black text-red-500/60 hover:text-red-400 transition-colors flex items-center gap-1.5"
           >
-            <Trash2 className="w-2.5 h-2.5" /> Purge
+            <Trash2 className="w-3 h-3" /> PURGE
           </button>
         )}
       </div>
@@ -111,10 +111,10 @@ export function ResumeUpload({ onUpload, currentResume }: ResumeUploadProps) {
           onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
           onDragLeave={() => setIsDragOver(false)}
           onDrop={handleDrop}
-          className={`border-2 border-dashed rounded-2xl p-6 transition-all flex flex-col items-center justify-center gap-3 cursor-pointer group ${
+          className={`border-2 border-dashed rounded-2xl p-8 transition-all flex flex-col items-center justify-center gap-4 cursor-pointer group ${
             isDragOver 
-              ? 'border-accent bg-accent/5' 
-              : 'border-white/5 bg-black/20 hover:border-white/10 hover:bg-white/[0.02]'
+              ? 'border-accent bg-accent/5 ring-4 ring-accent/10' 
+              : 'border-white/5 bg-black/20 hover:border-white/10 hover:bg-white/[0.04]'
           } ${loading ? 'opacity-50 cursor-wait' : ''}`}
           onClick={() => {
             if (loading) return;
@@ -128,38 +128,38 @@ export function ResumeUpload({ onUpload, currentResume }: ResumeUploadProps) {
             input.click();
           }}
         >
-          <div className="w-10 h-10 rounded-full bg-surface-2 flex items-center justify-center text-stone-500 group-hover:scale-110 group-hover:text-accent transition-all">
-            {loading ? <RefreshCw className="w-5 h-5 animate-spin text-accent" /> : <Upload className="w-5 h-5" />}
+          <div className="w-12 h-12 rounded-full bg-surface-2 flex items-center justify-center text-stone-500 group-hover:scale-110 group-hover:text-accent transition-all border border-white/5 group-hover:border-accent/40 shadow-xl shadow-black/20">
+            {loading ? <RefreshCw className="w-6 h-6 animate-spin text-accent" /> : <Upload className="w-6 h-6" />}
           </div>
           <div className="text-center">
-            <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">
-              {loading ? 'Synthesizing...' : 'Upload Profile (.txt, .md, .json, .pdf)'}
+            <p className="text-[11px] font-black text-white uppercase tracking-widest">
+              {loading ? 'Synthesizing...' : 'Upload Profile'}
             </p>
-            <p className="text-[9px] text-stone-600 mt-1 uppercase tracking-tighter">
-              Interviewer will use this context
+            <p className="text-[9px] text-stone-500 mt-2 uppercase tracking-tight font-medium">
+              Accepts .txt, .md, .json, .pdf
             </p>
           </div>
         </div>
       ) : (
-        <div className="bg-accent/5 border border-accent/20 rounded-2xl p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-             <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center text-accent">
-                <Check className="w-4 h-4" />
+        <div className="bg-accent/5 border border-accent/20 rounded-2xl p-5 flex items-center justify-between shadow-inner">
+          <div className="flex items-center gap-4">
+             <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center text-accent ring-1 ring-accent/20">
+                <Check className="w-5 h-5" />
              </div>
              <div>
-                <p className="text-[10px] font-black text-accent-light uppercase tracking-widest">Resume Synced</p>
-                <p className="text-[9px] text-accent/60 font-mono tracking-tighter uppercase">Status: PERMANENT_STORAGE</p>
+                <p className="text-xs font-black text-accent-light uppercase tracking-widest">Profile Synced</p>
+                <p className="text-[10px] text-accent/50 font-mono tracking-tighter uppercase font-medium">status_stable_v4</p>
              </div>
           </div>
-          <p className="text-[8px] font-mono text-accent/40 lowercase italic">
-            Approx. {Math.round(currentResume.length / 1000)}k chars
+          <p className="text-[10px] font-mono text-accent/30 lowercase italic">
+            {Math.round(currentResume.length / 1000)}kb_buffer
           </p>
         </div>
       )}
 
       {error && (
-        <div className="text-[10px] text-red-400 flex items-center gap-2 bg-red-500/5 p-2 rounded-lg border border-red-500/10">
-          <AlertCircle className="w-3 h-3" /> {error}
+        <div className="text-[10px] text-red-400 flex items-center gap-3 bg-red-500/5 p-3 rounded-xl border border-red-500/20 font-medium">
+          <AlertCircle className="w-4 h-4 shrink-0" /> {error}
         </div>
       )}
     </div>

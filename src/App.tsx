@@ -19,6 +19,9 @@ import { JDQuizView } from './components/JDQuizView';
 import { IntelModule } from './components/IntelModule';
 import { SalaryIntelligence } from './components/SalaryIntelligence';
 import { PatternEngine } from './components/PatternEngine';
+import { GuideView } from './components/GuideView';
+import { QuestionBankView } from './components/QuestionBankView';
+import { FlashcardView } from './components/FlashcardView';
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>(Screen.DASHBOARD);
@@ -27,6 +30,7 @@ export default function App() {
     jd: '',
     level: 'mid',
     mode: 'practice',
+    feedbackStyle: 'constructive',
     candidatePersona: '',
     resume: localStorage.getItem('IP_STORED_RESUME'),
     jdAnalysis: '',
@@ -45,10 +49,11 @@ export default function App() {
     roadmap: [],
     history: [],
     companyIntel: null,
-    domainTrack: 'Full-Stack Engineering',
+    domainTracks: [],
+    customDomains: [],
     yearsExperience: 5,
     currentSalary: '',
-    currency: 'USD',
+    currency: 'INR',
     location: {
       country: '',
       city: '',
@@ -64,7 +69,7 @@ export default function App() {
 
     if (savedKey) {
       setApiKey(savedKey);
-    } else if (envKey && envKey !== 'MY_GEMINI_API_KEY' && envKey !== '') {
+    } else if (envKey && envKey.trim() !== '') {
       setApiKey(envKey);
     }
 
@@ -133,6 +138,7 @@ export default function App() {
            <NavTab active={screen === Screen.DASHBOARD || screen === Screen.EVOLUTION} onClick={() => navigate(Screen.DASHBOARD)} label="Center" />
            <NavTab active={screen === Screen.HOME || screen === Screen.INTEL || screen === Screen.QUIZ} onClick={() => navigate(Screen.HOME)} label="Initialize" />
            <NavTab active={screen === Screen.MCQ} onClick={() => navigate(Screen.MCQ)} label="Validation" />
+           <NavTab active={screen === Screen.GUIDE} onClick={() => navigate(Screen.GUIDE)} label="Guide" />
         </div>
 
         <div 
@@ -162,12 +168,14 @@ export default function App() {
                 apiKey={apiKey}
                 onApiKeyChange={setApiKey}
                 onSaveApiKey={saveApiKey}
-                onAnalyze={(jd, level, mode, persona, analysis) => {
-                  updateState({ jd, level, mode, candidatePersona: persona, jdAnalysis: analysis, companyIntel: null });
+                onAnalyze={(jd, level, mode, persona, feedbackStyle, analysis) => {
+                  updateState({ jd, level, mode, feedbackStyle, candidatePersona: persona, jdAnalysis: analysis, companyIntel: null });
                   navigate(Screen.INTERVIEWER_SELECTION);
                 }}
                 onUpdateResume={(resume) => updateState({ resume })}
-                onUpdateTrack={(domainTrack) => updateState({ domainTrack })}
+                onUpdateTracks={(domainTracks, customDomains) => updateState({ domainTracks, customDomains })}
+                onUpdateLevel={(level) => updateState({ level })}
+                onUpdateCompany={(company) => updateState({ company })}
                 onUpdateExperience={(yearsExperience) => updateState({ yearsExperience })}
                 onUpdateSalary={(currentSalary, currency) => updateState({ currentSalary, currency })}
                 onUpdateLocation={(country, city) => updateState({ location: { country, city } })}
@@ -190,11 +198,7 @@ export default function App() {
                 state={state}
                 apiKey={apiKey}
                 drillQuestions={drillQuestions}
-                onCancel={() => {
-                  if (confirm('Are you sure you want to terminate this simulation? All current progress will be lost.')) {
-                    navigate(Screen.DASHBOARD);
-                  }
-                }}
+                onCancel={() => navigate(Screen.DASHBOARD)}
                 onComplete={(results) => {
                   const avg = results.reduce((a, b) => a + b.score, 0) / (results.length || 1);
                   const pct = Math.round(avg * 10);
@@ -304,11 +308,39 @@ export default function App() {
                 state={state}
                 apiKey={apiKey}
                 onNavigate={navigate}
+                onUpdateLevel={(level) => updateState({ level })}
+                onUpdateCompany={(company) => updateState({ company })}
               />
             )}
 
             {screen === Screen.PATTERNS && (
               <PatternEngine 
+                state={state}
+                apiKey={apiKey}
+                onNavigate={navigate}
+              />
+            )}
+
+            {screen === Screen.GUIDE && (
+              <GuideView 
+                onNavigate={navigate}
+              />
+            )}
+
+            {screen === Screen.QUESTION_BANK && (
+              <QuestionBankView 
+                state={state}
+                apiKey={apiKey}
+                onNavigate={navigate}
+                onStartDrill={(qs) => {
+                  setDrillQuestions(qs);
+                  navigate(Screen.INTERVIEW);
+                }}
+              />
+            )}
+
+            {screen === Screen.FLASHCARDS && (
+              <FlashcardView 
                 state={state}
                 apiKey={apiKey}
                 onNavigate={navigate}

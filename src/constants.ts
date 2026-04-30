@@ -104,6 +104,11 @@ export const COMPANIES: Record<string, { tip: string, lp: string[], pattern?: st
   NVIDIA:    { tip: 'Hard-core engineering, CUDA knowledge (usually), and problem solving under pressure.', lp: [] },
   Tesla:     { tip: 'Focus on first principles, high-speed iteration, and hardware/software integration.', lp: ['First Principles', 'High Speed', 'Extreme Ownership'] },
   Netflix:   { tip: 'Senior-only culture — show independent judgment, context over control.', lp: [] },
+  FAANG:     { 
+    tip: 'High-stakes multi-round simulation covering System Design, Troubleshooting, and Technical Deep Dives.', 
+    lp: ['Leadership Principles', 'System Design Thinking', 'FAANG Bar'],
+    pattern: ['System Design Round', 'Troubleshooting Round', 'Deep Dive Round', 'Behavioral Round']
+  },
   Stripe:    { tip:'Show rigorous thinking, user empathy, and comfort with ambiguity.', lp:[] },
   OpenAI:    { tip:'Research depth, safety awareness, and ambition to solve hard problems.', lp:[] },
   Startup:   { tip:'Show scrappiness, versatility, and speed. Generalist wins here.', lp:[] },

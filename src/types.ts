@@ -17,10 +17,14 @@ export enum Screen {
   EVOLUTION = 'evolution',
   SALARY = 'salary',
   PATTERNS = 'patterns',
+  GUIDE = 'guide',
+  QUESTION_BANK = 'question_bank',
+  FLASHCARDS = 'flashcards',
 }
 
 export type RoleLevel = 'entry' | 'mid' | 'senior' | 'lead' | 'executive';
 export type InterviewMode = 'practice' | 'real' | 'salary';
+export type FeedbackStyle = 'direct' | 'constructive' | 'neutral';
 export type CandidatePersona = string;
 
 export interface Interviewer {
@@ -61,6 +65,7 @@ export interface RoadmapItem {
   topic: string;
   status: 'todo' | 'learning' | 'mastered';
   importance: 'high' | 'medium' | 'low';
+  week?: number;
 }
 
 export interface MCQQuestion {
@@ -89,6 +94,7 @@ export interface AppState {
   company?: string;
   level: RoleLevel;
   mode: InterviewMode;
+  feedbackStyle: FeedbackStyle;
   candidatePersona: CandidatePersona;
   resume: string | null;
   jdAnalysis: string;
@@ -104,7 +110,8 @@ export interface AppState {
   history: HistoryItem[];
   mcqSession?: MCQSession;
   companyIntel: string | null;
-  domainTrack: string;
+  domainTracks: string[];
+  customDomains: string[];
   yearsExperience: number;
   currentSalary: string;
   currency: string;

@@ -4,8 +4,8 @@
  */
 
 import { useState } from 'react';
-import { Target, Search, Sparkles, Building2, ChevronRight, AlertCircle, RefreshCw, Key, LayoutDashboard, FileSearch, Shield } from 'lucide-react';
-import { AppState, RoleLevel, InterviewMode, Screen, CandidatePersona } from '../types';
+import { Target, Search, Sparkles, Building2, ChevronRight, AlertCircle, RefreshCw, Key, LayoutDashboard, FileSearch, Shield, HelpCircle, DollarSign, BookOpen, Zap } from 'lucide-react';
+import { AppState, RoleLevel, InterviewMode, Screen, CandidatePersona, FeedbackStyle } from '../types';
 import { callGemini } from '../services/gemini';
 import { COMPANIES } from '../constants';
 import { ResumeUpload } from './ResumeUpload';
@@ -17,9 +17,11 @@ interface HomeViewProps {
   apiKey: string;
   onApiKeyChange: (key: string) => void;
   onSaveApiKey: (key: string) => void;
-  onAnalyze: (jd: string, level: RoleLevel, mode: InterviewMode, persona: CandidatePersona, analysis: string) => void;
+  onAnalyze: (jd: string, level: RoleLevel, mode: InterviewMode, persona: CandidatePersona, feedbackStyle: FeedbackStyle, analysis: string) => void;
   onUpdateResume: (resume: string | null) => void;
-  onUpdateTrack: (track: string) => void;
+  onUpdateTracks: (tracks: string[], custom: string[]) => void;
+  onUpdateLevel: (level: RoleLevel) => void;
+  onUpdateCompany: (company: string) => void;
   onUpdateExperience: (years: number) => void;
   onUpdateSalary: (salary: string, currency: string) => void;
   onUpdateLocation: (country: string, city: string) => void;
@@ -33,7 +35,9 @@ export function HomeView({
   onSaveApiKey, 
   onAnalyze, 
   onUpdateResume, 
-  onUpdateTrack, 
+  onUpdateTracks, 
+  onUpdateLevel,
+  onUpdateCompany,
   onUpdateExperience,
   onUpdateSalary,
   onUpdateLocation,
@@ -42,6 +46,7 @@ export function HomeView({
   const [jd, setJd] = useState(state.jd);
   const [level, setLevel] = useState<RoleLevel>(state.level);
   const [mode, setMode] = useState<InterviewMode>(state.mode);
+  const [feedbackStyle, setFeedbackStyle] = useState<FeedbackStyle>(state.feedbackStyle || 'constructive');
   const [selectedCompany, setSelectedCompany] = useState<string>(state.company || 'None');
   const [persona, setPersona] = useState<CandidatePersona>(state.candidatePersona || 'Confident, technical, and clear.');
   const [loading, setLoading] = useState(false);
@@ -50,9 +55,17 @@ export function HomeView({
 
   const [exp, setExp] = useState(state.yearsExperience);
   const [sal, setSal] = useState(state.currentSalary);
-  const [curr, setCurr] = useState(state.currency);
+  const [curr, setCurr] = useState(state.currency || 'INR');
   const [country, setCountry] = useState(state.location.country);
   const [city, setCity] = useState(state.location.city);
+
+  const syncContext = () => {
+    onUpdateLevel(level);
+    onUpdateCompany(selectedCompany);
+    onUpdateExperience(exp);
+    onUpdateSalary(sal, curr);
+    onUpdateLocation(country, city);
+  };
 
   const handleAnalyze = async () => {
     if (!apiKey) {
@@ -69,28 +82,24 @@ export function HomeView({
 
     try {
       // Sync local state back to App state before analysis
-      onUpdateExperience(exp);
-      onUpdateSalary(sal, curr);
-      onUpdateLocation(country, city);
+      syncContext();
 
       const companyInfo = COMPANIES[selectedCompany as keyof typeof COMPANIES];
-      const companyContext = selectedCompany !== 'None' ? `Target Company: ${selectedCompany}. Tip: ${companyInfo.tip}. Patterns: ${companyInfo.pattern?.join(', ')}.` : '';
-      const trackContext = `Specialization Track: ${state.domainTrack}.`;
-      const personalContext = `Experience: ${exp} years. Location: ${city}, ${country}. Current Salary: ${sal} ${curr}.`;
+      const companyContext = selectedCompany !== 'None' ? `Target: ${selectedCompany}. Tip: ${companyInfo.tip}.` : '';
+      const trackContext = `Tracks: ${state.domainTracks.join(', ')}.`;
       
-      const context = jd || `${selectedCompany} role at ${level} level. Candidate Role: ${persona}`;
-      const prompt = `Analyze this JD and provide a 4-bullet point brief that highlights the "Hidden Stakes", "Golden Technical Skills", "Behavioral Landmines", and "Ideal Candidate Archetype". Keep it punchy and secret-agent style. Consider the candidate has ${exp} years experience and is targeting ${selectedCompany} in ${city}, ${country}.
+      const context = jd.substring(0, 1500) || `${selectedCompany} ${level}`;
+      const prompt = `EXPERT BRIEF (200 words max):
+Analyize for: "Hidden Stakes", "Golden Technical Skills", "Behavioral Landmines", "Ideal Archetype".
 JD: ${context}
-Candidate Level: ${level}
-${companyContext}
-${trackContext}
-${personalContext}`;
+Target: ${companyContext}
+Level: ${level}`;
 
       const systemInstruction = 'You are an elite interview auditor. reveal the truth behind the JD.';
       
       const analysis = await callGemini(apiKey, prompt, systemInstruction, 'gemini-1.5-flash');
       
-      onAnalyze(jd, level, mode, persona, analysis);
+      onAnalyze(jd, level, mode, persona, feedbackStyle, analysis);
     } catch (e: any) {
       setError('Analysis failed: ' + e.message);
     } finally {
@@ -104,92 +113,87 @@ ${personalContext}`;
       <motion.header 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="sticky top-16 z-50 bg-bg/80 backdrop-blur-md -mx-4 px-4 py-8 mb-12 border-b border-white/5"
+        className="sticky top-16 z-50 bg-bg/80 backdrop-blur-md -mx-4 px-4 py-4 mb-6 border-b border-white/5"
       >
         <div className="flex items-center justify-between">
           <div>
-            <div className="flex items-center gap-4 mb-2">
-               <div className="px-5 py-1.5 bg-accent/5 border border-accent/20 rounded-full text-[10px] font-black uppercase tracking-[0.4em] text-accent flex items-center gap-2">
-                  <Sparkles className="w-3 h-3" /> System_Initialization_v4.5
+            <div className="flex items-center gap-4 mb-1">
+               <div className="px-3 py-1 bg-accent/5 border border-accent/20 rounded-full text-[8px] font-black uppercase tracking-[0.2em] text-accent flex items-center gap-2">
+                  <Sparkles className="w-2.5 h-2.5" /> System_Initialization_v4.5
                </div>
             </div>
-            <h1 className="text-5xl font-display font-black text-stone-100 italic tracking-tighter uppercase">Simulation <span className="text-accent underline decoration-4 underline-offset-4 decoration-accent/20">Protocol</span></h1>
+            <h1 className="text-3xl font-display font-black text-stone-100 italic tracking-tighter uppercase">Simulation <span className="text-accent underline decoration-2 underline-offset-4 decoration-accent/20">Protocol</span></h1>
           </div>
           <button 
             onClick={() => onNavigate(Screen.DASHBOARD)}
-            className="hidden md:flex bg-surface-2 border border-white/5 hover:border-white/10 text-stone-400 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] items-center gap-3 transition-all"
+            className="hidden md:flex bg-surface-2 border border-white/5 hover:border-white/10 text-stone-400 px-6 py-2 rounded-xl font-black uppercase tracking-widest text-[9px] items-center gap-2 transition-all"
           >
-            <LayoutDashboard className="w-4 h-4" />
+            <LayoutDashboard className="w-3.5 h-3.5" />
             Dashboard
           </button>
         </div>
       </motion.header>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-         {/* Left Col: Target & Context */}
-         <div className="lg:col-span-3 space-y-10">
-            <TrackSelector 
-              currentTrack={state.domainTrack}
-              onSelect={onUpdateTrack}
-            />
-
-            <div className="space-y-6 bg-surface-1 border border-white/5 rounded-3xl p-8">
-              <div className="flex items-center gap-3 border-b border-white/5 pb-4">
-                <Target className="w-4 h-4 text-stone-500" />
-                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Contextual Data</h3>
+         {/* Top Config Row: Contextual Data */}
+         <div className="lg:col-span-12">
+            <div className="bento-card p-6 px-8 flex flex-col md:flex-row items-center gap-8 shadow-xl">
+              <div className="flex items-center gap-3 pr-8 md:border-r border-white/5 min-w-max">
+                 <Target className="w-4 h-4 text-accent" />
+                 <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white">Contextual Data</h3>
               </div>
               
-              <div className="space-y-4">
-                 <div className="space-y-2">
-                    <label className="text-[9px] font-black uppercase tracking-widest text-stone-600 block">Experience (Years)</label>
+              <div className="flex-1 w-full grid grid-cols-2 md:flex md:flex-row gap-6">
+                 <div className="space-y-2 flex-1 min-w-[80px]">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-stone-500 block">Experience</label>
                     <input 
                       type="number" 
                       value={exp} 
                       onChange={(e) => setExp(parseInt(e.target.value) || 0)}
-                      className="w-full bg-black/20 border border-white/5 rounded-xl p-3 text-xs text-white font-mono outline-none focus:border-accent"
+                      className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white font-mono font-bold outline-none focus:border-accent ring-1 ring-white/5 shadow-inner"
                     />
                  </div>
 
-                 <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-2">
-                       <label className="text-[9px] font-black uppercase tracking-widest text-stone-600 block">Location (Country)</label>
-                       <input 
-                          type="text" 
-                          value={country} 
-                          onChange={(e) => setCountry(e.target.value)}
-                          placeholder="e.g. India"
-                          className="w-full bg-black/20 border border-white/5 rounded-xl p-3 text-xs text-white font-mono outline-none focus:border-accent"
-                       />
-                    </div>
-                    <div className="space-y-2">
-                       <label className="text-[9px] font-black uppercase tracking-widest text-stone-600 block">City</label>
-                       <input 
-                          type="text" 
-                          value={city} 
-                          onChange={(e) => setCity(e.target.value)}
-                          placeholder="e.g. Bangalore"
-                          className="w-full bg-black/20 border border-white/5 rounded-xl p-3 text-xs text-white font-mono outline-none focus:border-accent"
-                       />
-                    </div>
+                 <div className="space-y-2 flex-1 min-w-[120px]">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-stone-500 block">Country</label>
+                    <input 
+                       type="text" 
+                       value={country} 
+                       onChange={(e) => setCountry(e.target.value)}
+                       placeholder="Country"
+                       className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white font-mono font-bold outline-none focus:border-accent ring-1 ring-white/5 placeholder:text-stone-800 shadow-inner uppercase"
+                    />
                  </div>
 
-                 <div className="grid grid-cols-3 gap-2">
-                    <div className="col-span-2 space-y-2">
-                       <label className="text-[9px] font-black uppercase tracking-widest text-stone-600 block">Current Salary</label>
-                       <input 
-                          type="text" 
-                          value={sal} 
-                          onChange={(e) => setSal(e.target.value)}
-                          placeholder="e.g. 16.51"
-                          className="w-full bg-black/20 border border-white/5 rounded-xl p-3 text-xs text-white font-mono outline-none focus:border-accent"
-                       />
-                    </div>
-                    <div className="space-y-2">
-                       <label className="text-[9px] font-black uppercase tracking-widest text-stone-600 block">Currency</label>
+                 <div className="space-y-2 flex-1 min-w-[120px]">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-stone-500 block">City</label>
+                    <input 
+                       type="text" 
+                       value={city} 
+                       onChange={(e) => setCity(e.target.value)}
+                       placeholder="City"
+                       className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white font-mono font-bold outline-none focus:border-accent ring-1 ring-white/5 placeholder:text-stone-800 shadow-inner"
+                    />
+                 </div>
+
+                 <div className="space-y-2 flex-1 min-w-[120px]">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-stone-500 block">Current Salary</label>
+                    <input 
+                       type="text" 
+                       value={sal} 
+                       onChange={(e) => setSal(e.target.value)}
+                       placeholder="Salary"
+                       className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white font-mono font-bold outline-none focus:border-accent ring-1 ring-white/5 placeholder:text-stone-800 shadow-inner"
+                    />
+                 </div>
+
+                 <div className="space-y-2 md:w-32 min-w-[100px]">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-stone-500 block">Currency</label>
+                    <div className="relative">
                        <select 
                           value={curr} 
                           onChange={(e) => setCurr(e.target.value)}
-                          className="w-full bg-black/20 border border-white/5 rounded-xl p-3 text-xs text-white font-mono outline-none focus:border-accent appearance-none"
+                          className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white font-mono font-bold outline-none focus:border-accent appearance-none ring-1 ring-white/5 shadow-inner"
                        >
                           <option value="USD">USD</option>
                           <option value="INR">INR</option>
@@ -197,75 +201,130 @@ ${personalContext}`;
                           <option value="GBP">GBP</option>
                           <option value="CAD">CAD</option>
                        </select>
+                       <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-stone-500">
+                          <ChevronRight className="w-3 h-3 rotate-90" />
+                       </div>
                     </div>
                  </div>
               </div>
             </div>
          </div>
 
+         {/* Left Col: Target & Context */}
+         <div className="lg:col-span-3 space-y-10">
+            <TrackSelector 
+              currentTracks={state.domainTracks}
+              customDomains={state.customDomains}
+              onUpdateTracks={onUpdateTracks}
+            />
+
+            <div className="bento-card p-8 space-y-6">
+               <div className="flex items-center gap-3 border-b border-white/5 pb-4">
+                 <Shield className="w-4 h-4 text-stone-400" />
+                 <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white">Tactical Assets</h3>
+               </div>
+               <div className="grid grid-cols-1 gap-3">
+                  <AssetCard 
+                    icon={<HelpCircle className="w-4 h-4" />} 
+                    title="Question Bank" 
+                    desc="Real-world corporate queries"
+                    onClick={() => onNavigate(Screen.QUESTION_BANK)}
+                  />
+                  <AssetCard 
+                    icon={<Zap className="w-4 h-4" />} 
+                    title="Flash UI" 
+                    desc="Neural retention drills"
+                    onClick={() => onNavigate(Screen.FLASHCARDS)}
+                  />
+                  <AssetCard 
+                    icon={<DollarSign className="w-4 h-4" />} 
+                    title="Salary Intel" 
+                    desc="Compensation benchmarks"
+                    onClick={() => {
+                        syncContext();
+                        onNavigate(Screen.SALARY);
+                    }}
+                  />
+                  <AssetCard 
+                    icon={<BookOpen className="w-4 h-4" />} 
+                    title="User Manual" 
+                    desc="Operational protocols"
+                    onClick={() => onNavigate(Screen.GUIDE)}
+                  />
+               </div>
+            </div>
+
+         </div>
+
          {/* Center Col: JD Input & Target Grid */}
          <div className="lg:col-span-6 space-y-8">
-            <div className="bg-surface-1 border border-white/5 rounded-3xl p-8 space-y-6 shadow-2xl relative overflow-hidden group">
-               <div className="absolute top-0 right-0 p-6 opacity-3 group-hover:opacity-5 transition-opacity pointer-events-none">
+            <div className="bento-card p-8 space-y-6 shadow-2xl relative overflow-hidden group">
+               <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity pointer-events-none">
                   <FileSearch className="w-48 h-48 text-accent" />
                </div>
                
                <div className="flex items-center justify-between border-b border-white/5 pb-4">
                   <div className="flex items-center gap-3">
                     <FileSearch className="w-4 h-4 text-accent" />
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Requirement Feed</h3>
+                    <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white">Requirement Feed</h3>
                   </div>
-                  <span className="text-[9px] font-mono text-stone-500 uppercase tracking-widest">Buffer_Active // {jd.length} chars</span>
+                  <span className="text-[10px] font-mono text-stone-400 uppercase tracking-widest">Buffer_Active // {jd.length} chars</span>
                </div>
 
                <textarea
-                 className="w-full h-[250px] bg-black/20 border border-white/5 rounded-2xl p-6 text-sm text-stone-300 font-mono leading-relaxed outline-none focus:border-accent/40 transition-all resize-none scrollbar-hide"
+                 className="w-full h-[280px] bg-black/20 border border-white/10 rounded-2xl p-8 text-base text-white font-mono font-bold leading-relaxed outline-none focus:border-accent/60 transition-all resize-none scrollbar-hide shadow-inner ring-1 ring-white/10"
                  placeholder="Paste the full JD or specific requirements here for intelligence extraction..."
                  value={jd}
                  onChange={(e) => setJd(e.target.value)}
                />
 
                <div className="space-y-4">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-stone-600 block">Candidate Identity Alias</label>
+                  <label className="text-sm font-black uppercase tracking-[0.15em] text-white block">Candidate Identity Alias</label>
                   <input
                     type="text"
                     value={persona}
                     onChange={(e) => setPersona(e.target.value)}
-                    className="w-full bg-black/20 border border-white/5 rounded-xl p-4 text-xs text-white font-display italic font-bold outline-none focus:border-accent"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl p-5 text-base text-white font-display italic font-black outline-none focus:border-accent ring-1 ring-white/10 shadow-xl placeholder:text-stone-800"
                     placeholder="e.g. Senior Cloud Architect specializing in K8s"
                   />
                </div>
             </div>
 
-            <div className="space-y-6 bg-surface-1 border border-white/5 rounded-3xl p-6 shadow-xl">
+            <div className="bento-card p-6 shadow-xl space-y-6">
                <div className="flex items-center justify-between border-b border-white/5 pb-4">
                   <div className="flex items-center gap-3">
                     <Building2 className="w-4 h-4 text-accent" />
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Target Corporations</h3>
+                    <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white">Target Corporations</h3>
                   </div>
-                  <span className="text-[9px] font-black uppercase tracking-widest text-stone-500">Selected: {selectedCompany}</span>
+                  <span className="text-xs font-black uppercase tracking-widest text-stone-300">Selected: {selectedCompany}</span>
                </div>
                
                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar p-1">
                 {Object.entries(COMPANIES).map(([name, info]) => (
                   <button
                     key={name}
-                    onClick={() => setSelectedCompany(name)}
-                    className={`p-4 text-left transition-all border rounded-2xl group flex flex-col justify-between h-full min-h-[100px] ${
+                    onClick={() => {
+                        setSelectedCompany(name);
+                        onUpdateCompany(name);
+                    }}
+                    className={`p-4 text-left transition-all border rounded-2xl group flex flex-col justify-between h-full min-h-[100px] relative overflow-hidden ${
                       selectedCompany === name 
-                        ? 'bg-accent/10 border-accent/40 ring-1 ring-accent/20' 
+                        ? 'bg-accent/10 border-accent/40 ring-1 ring-accent/20 shadow-lg shadow-accent/5' 
                         : 'bg-black/20 border-white/5 text-stone-500 hover:border-white/10 hover:bg-white/[0.04]'
-                    }`}
+                    } ${name === 'FAANG' ? 'border-accent/40 shadow-[0_0_20px_rgba(139,116,255,0.15)] bg-accent/5' : ''}`}
                   >
+                    {name === 'FAANG' && (
+                      <div className="absolute top-0 right-0 px-2 py-0.5 bg-accent text-[6px] font-black uppercase tracking-widest text-white rounded-bl shadow-lg">Elite Mode</div>
+                    )}
                     <div className="flex items-start justify-between w-full mb-3">
-                        <span className={`text-[10px] font-black uppercase tracking-widest transition-all ${
-                          selectedCompany === name ? 'text-accent-light' : 'text-stone-400'
-                        }`}>{name}</span>
+                        <span className={`text-[11px] font-black uppercase tracking-widest transition-all ${
+                          selectedCompany === name ? 'text-accent-light' : 'text-stone-200'
+                        } ${name === 'FAANG' ? 'text-accent' : ''}`}>{name}</span>
                         {selectedCompany === name && <div className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse shadow-[0_0_8px_rgba(129,140,248,0.8)]"></div>}
                     </div>
                     
                     <div className="space-y-1">
-                      <p className="text-[8px] text-stone-500 italic leading-snug line-clamp-2 transition-colors group-hover:text-stone-400">
+                      <p className="text-[10px] text-stone-400 italic leading-snug line-clamp-2 transition-colors group-hover:text-stone-200">
                         "{info.tip || 'Deep intel available.'}"
                       </p>
                     </div>
@@ -278,8 +337,10 @@ ${personalContext}`;
                <button
                  onClick={handleAnalyze}
                  disabled={loading || !jd || !apiKey}
-                 className={`flex-1 py-8 rounded-2xl font-black uppercase tracking-[0.5em] text-[12px] transition-all flex items-center justify-center gap-4 group relative overflow-hidden ${
-                   loading || !jd || !apiKey ? 'bg-stone-800 text-stone-600 cursor-not-allowed' : 'bg-accent text-black hover:scale-[1.01] shadow-2xl shadow-accent/20'
+                 className={`flex-1 py-10 rounded-2xl font-black uppercase tracking-[0.5em] text-base transition-all flex items-center justify-center gap-6 group relative overflow-hidden ${
+                   loading || !jd || !apiKey 
+                     ? 'bg-stone-900 border border-white/5 text-stone-700 cursor-not-allowed' 
+                     : 'bg-accent text-white hover:scale-[1.02] shadow-[0_0_50px_rgba(139,116,255,0.25)] active:scale-[0.98]'
                  }`}
                >
                  {loading ? (
@@ -304,22 +365,25 @@ ${personalContext}`;
               onUpload={onUpdateResume}
             />
 
-            <div className="space-y-6 bg-surface-1 border border-white/5 rounded-3xl p-6">
+            <div className="bento-card p-6 space-y-6">
                <div className="flex items-center gap-3 border-b border-white/5 pb-4">
-                 <Shield className="w-4 h-4 text-stone-500" />
-                 <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Settings</h3>
+                 <Shield className="w-4 h-4 text-stone-400" />
+                 <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white">Settings</h3>
                </div>
 
                <div className="space-y-6">
                   <div className="space-y-3">
-                    <label className="text-[9px] font-black uppercase tracking-widest text-stone-600">Level</label>
+                    <label className="text-xs font-black uppercase tracking-widest text-white">Grade / Level</label>
                     <div className="flex flex-wrap gap-1.5">
-                      {['entry', 'mid', 'senior', 'lead', 'executive'].map((l) => (
+                      {['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'Senior', 'Staff', 'Lead', 'Executive'].map((l) => (
                         <button
                           key={l}
-                          onClick={() => setLevel(l as RoleLevel)}
-                          className={`px-3 py-1.5 text-[8px] font-black uppercase rounded-lg border transition-all ${
-                            level === l ? 'bg-white text-black border-white' : 'bg-black/20 border-white/5 text-stone-600'
+                          onClick={() => {
+                              setLevel(l as RoleLevel);
+                              onUpdateLevel(l as RoleLevel);
+                          }}
+                          className={`px-3 py-2 text-[10px] font-black uppercase rounded-lg border transition-all ${
+                            level === l ? 'bg-accent text-black border-accent' : 'bg-black/40 border-white/10 text-stone-300'
                           }`}
                         >
                           {l}
@@ -329,14 +393,14 @@ ${personalContext}`;
                   </div>
 
                   <div className="space-y-3">
-                    <label className="text-[9px] font-black uppercase tracking-widest text-stone-600">Mode</label>
+                    <label className="text-xs font-black uppercase tracking-widest text-white">Mode</label>
                     <div className="grid grid-cols-1 gap-2">
                        {['practice', 'real', 'salary'].map((m) => (
                          <button
                            key={m}
                            onClick={() => setMode(m as InterviewMode)}
-                           className={`p-3 text-left rounded-xl border text-[9px] font-bold uppercase tracking-widest transition-all ${
-                             mode === m ? 'bg-surface-2 text-accent border-accent/20' : 'bg-black/20 border-white/5 text-stone-600'
+                           className={`p-3 text-left rounded-xl border text-[11px] font-black uppercase tracking-widest transition-all ${
+                             mode === m ? 'bg-surface-2 text-accent border-accent/20' : 'bg-black/20 border-white/5 text-stone-400'
                            }`}
                          >
                            {m === 'practice' ? 'Coached Drill' : m === 'real' ? 'High Stakes' : 'Salary Negotiation'}
@@ -345,15 +409,32 @@ ${personalContext}`;
                     </div>
                   </div>
 
+                  <div className="space-y-3">
+                    <label className="text-xs font-black uppercase tracking-widest text-white">Feedback Tone</label>
+                    <div className="flex flex-col gap-2">
+                       {['direct', 'constructive', 'neutral'].map((s) => (
+                         <button
+                           key={s}
+                           onClick={() => setFeedbackStyle(s as FeedbackStyle)}
+                           className={`p-3 text-left px-5 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${
+                             feedbackStyle === s ? 'bg-accent/10 text-accent border-accent/20 ring-1 ring-accent/10' : 'bg-black/20 border-white/5 text-stone-500 hover:text-stone-200'
+                           }`}
+                         >
+                           {s}
+                         </button>
+                       ))}
+                    </div>
+                  </div>
+
                   <div className="pt-4 border-t border-white/5 space-y-3">
-                    <label className="text-[9px] font-black uppercase tracking-widest text-stone-600 flex items-center justify-between">
-                      System Key
-                      {apiKey && <span className="text-accent underline text-[7px] cursor-default">AUTHENTICATED</span>}
+                    <label className="text-xs font-black uppercase tracking-widest text-white flex items-center justify-between">
+                      System Intelligence Key
+                      {apiKey && <span className="text-accent underline text-[7px] cursor-default animate-pulse">Neural_Link_Established</span>}
                     </label>
                     <input
                       type="password"
-                      className="w-full bg-black/20 border border-white/5 rounded-xl p-3 text-xs text-stone-400 font-mono outline-none focus:border-accent/40"
-                      placeholder="GEMINI_API_KEY"
+                      className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-sm text-white font-mono outline-none focus:border-accent ring-1 ring-white/5 transition-all"
+                      placeholder={process.env.GEMINI_API_KEY ? "Using System Key. Enter override if desired..." : "GEMINI_API_KEY"}
                       value={apiKey}
                       onChange={(e) => onApiKeyChange(e.target.value)}
                     />
@@ -375,5 +456,23 @@ ${personalContext}`;
          </div>
       </div>
     </div>
+  );
+}
+
+function AssetCard({ icon, title, desc, onClick }: { icon: React.ReactNode, title: string, desc: string, onClick: () => void }) {
+  return (
+    <button 
+      onClick={onClick}
+      className="w-full p-4 bg-black/20 border border-white/5 rounded-2xl flex items-center gap-4 hover:border-accent/40 hover:bg-black/40 transition-all text-left group"
+    >
+       <div className="w-10 h-10 rounded-xl bg-accent/5 flex items-center justify-center text-accent/60 group-hover:text-accent group-hover:scale-110 transition-all border border-accent/10">
+          {icon}
+       </div>
+       <div>
+          <h4 className="text-xs font-black uppercase tracking-widest text-white">{title}</h4>
+          <p className="text-[10px] text-stone-400 font-medium group-hover:text-stone-300 mt-0.5">{desc}</p>
+       </div>
+       <ChevronRight className="w-3 h-3 text-stone-800 ml-auto group-hover:text-stone-400 group-hover:translate-x-1 transition-all" />
+    </button>
   );
 }
