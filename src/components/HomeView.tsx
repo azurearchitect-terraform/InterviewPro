@@ -15,6 +15,7 @@ import { motion } from 'motion/react';
 interface HomeViewProps {
   state: AppState;
   apiKey: string;
+  hasSystemKeyAccess?: boolean;
   onApiKeyChange: (key: string) => void;
   onSaveApiKey: (key: string) => void;
   onAnalyze: (jd: string, level: RoleLevel, mode: InterviewMode, persona: CandidatePersona, feedbackStyle: FeedbackStyle, analysis: string) => void;
@@ -31,6 +32,7 @@ interface HomeViewProps {
 export function HomeView({ 
   state, 
   apiKey, 
+  hasSystemKeyAccess = true,
   onApiKeyChange, 
   onSaveApiKey, 
   onAnalyze, 
@@ -434,7 +436,7 @@ Level: ${level}`;
                     <input
                       type="password"
                       className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-sm text-white font-mono outline-none focus:border-accent ring-1 ring-white/5 transition-all"
-                      placeholder={process.env.GEMINI_API_KEY ? "Using System Key. Enter override if desired..." : "GEMINI_API_KEY"}
+                      placeholder={hasSystemKeyAccess && process.env.GEMINI_API_KEY ? "Using System Key. Enter override if desired..." : "GEMINI_API_KEY"}
                       value={apiKey}
                       onChange={(e) => onApiKeyChange(e.target.value)}
                     />

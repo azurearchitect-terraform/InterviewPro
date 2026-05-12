@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { Send, User, ChevronRight, AlertCircle, Mic, MicOff, Lightbulb, Sparkles, Clock, ArrowLeft, RotateCcw, Volume2, Play, Square, Shield } from 'lucide-react';
+import { Send, User, ChevronRight, AlertCircle, Mic, MicOff, Lightbulb, Sparkles, Clock, ArrowLeft, RotateCcw, Volume2, Play, Square, Shield, Maximize, Minimize } from 'lucide-react';
 import { AppState, Message, QuestionResult, Interviewer } from '../types';
 import { INTERVIEWERS } from '../constants';
 import { callGemini } from '../services/gemini';
@@ -26,6 +26,8 @@ export function InterviewView({ state, apiKey, drillQuestions, onComplete, onCan
   const [currentResults, setCurrentResults] = useState<QuestionResult[]>([]);
   const [currentInterviewerIdx, setCurrentInterviewerIdx] = useState(0);
   const [timeLeft, setTimeLeft] = useState(120);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [hintLevel, setHintLevel] = useState(0); // 0: none, 1: hint, 2: solution
   const [isGettingHint, setIsGettingHint] = useState(false);
   const [isFlipping, setIsFlipping] = useState(false);
@@ -42,6 +44,20 @@ export function InterviewView({ state, apiKey, drillQuestions, onComplete, onCan
   const isFaang = state.company === 'FAANG';
 
   const currentInterviewer = INTERVIEWERS.find(i => i.id === state.selectedInterviewers[currentInterviewerIdx]) || INTERVIEWERS[0];
+
+  useEffect(() => {
+    const handleFullscreenChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => console.error(err));
+    } else {
+      document.exitFullscreen().catch(err => console.error(err));
+    }
+  };
 
   const startInterview = async () => {
     await askNextQuestion(1, 0);
@@ -156,7 +172,7 @@ Return only 3 short bullet points.
   }, [messages, isTyping]);
 
   useEffect(() => {
-    if (questionNum > 0 && !isTyping) {
+    if (questionNum > 0 && !isTyping && !isPaused) {
       const timer = setInterval(() => {
         setTimeLeft(prev => {
           if (prev <= 1) {
@@ -168,7 +184,7 @@ Return only 3 short bullet points.
       }, 1000);
       return () => clearInterval(timer);
     }
-  }, [questionNum, isTyping]);
+  }, [questionNum, isTyping, isPaused]);
 
   const askNextQuestion = async (num: number, ivIdx: number) => {
     setIsTyping(true);
@@ -275,7 +291,7 @@ Rewrite this answer to be exceptional. Use STAR format where relevant. Keep it c
   };
 
   const handleSubmit = async () => {
-    if (!input.trim() || isTyping) return;
+    if (!input.trim() || isTyping || isPaused) return;
 
     const answer = input.trim();
     const fillerStats = detectFillers(answer);
@@ -430,6 +446,22 @@ Provide brief feedback ${isFaang ? '(FAANG style)' : '(2 sentences)'} and a SCOR
         </div>
         
         <div className="flex items-center gap-6">
+           <button
+              onClick={toggleFullscreen}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all border bg-surface-2 border-white/10 text-stone-300 hover:text-white"
+           >
+             {isFullscreen ? <Minimize className="w-3 h-3" /> : <Maximize className="w-3 h-3" />}
+             {isFullscreen ? 'EXIT_FULLSCREEN' : 'FULLSCREEN'}
+           </button>
+           <button
+              onClick={() => setIsPaused(!isPaused)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all border ${
+                isPaused ? 'bg-accent text-white border-accent' : 'bg-surface-2 border-white/10 text-stone-300'
+              }`}
+           >
+             {isPaused ? 'RESUME_SIMULATION' : 'PAUSE_SIMULATION'}
+           </button>
+           <div className="h-8 w-[1px] bg-white/[0.05]"></div>
            <div className="text-right">
             <div className="text-[8px] font-black text-stone-600 uppercase tracking-[0.2em] mb-0.5 flex items-center justify-end gap-1">
               <Clock className="w-2.5 h-2.5 text-accent" /> simulation_clock
@@ -468,10 +500,10 @@ Provide brief feedback ${isFaang ? '(FAANG style)' : '(2 sentences)'} and a SCOR
               {m.role === 'candidate' ? 'YOU' : currentInterviewer.emoji}
             </div>
             <div className={`max-w-[85%] space-y-2 ${m.role === 'candidate' ? 'items-end flex flex-col' : ''}`}>
-              <div className={`px-5 py-3 rounded-2xl text-[13px] leading-relaxed border shadow-xl ${
+              <div className={`px-5 py-4 rounded-2xl text-base leading-relaxed border shadow-xl ${
                 m.role === 'candidate' 
-                  ? 'bg-accent/10 border-accent/30 text-stone-100 italic font-medium' 
-                  : 'bg-surface-1 border-white/5 text-stone-300'
+                  ? 'bg-accent/10 border-accent/30 text-white italic font-medium' 
+                  : 'bg-surface-1 border-white/10 text-stone-100'
               }`}>
                 {m.text}
               </div>

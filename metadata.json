@@ -1,6 +1,8 @@
 {
-  "name": "INTERVIEW_AUDITOR",
+  "name": "NexusInterviewPro",
   "description": "Tactical dark-mode interview simulation and neural intelligence extraction. Calibrate for high-stakes assessments with real-time feedback.",
-  "requestFramePermissions": ["microphone"],
+  "requestFramePermissions": [
+    "microphone"
+  ],
   "majorCapabilities": []
 }

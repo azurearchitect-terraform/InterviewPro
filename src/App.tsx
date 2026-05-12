@@ -5,6 +5,8 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { User as FirebaseUser, onAuthStateChanged } from 'firebase/auth';
+import { auth, signInWithGoogle, logout } from './services/firebase';
 import { Screen, AppState, RoleLevel, InterviewMode, SkillRating, RoadmapItem, CandidatePersona } from './types';
 import { HomeView } from './components/HomeView';
 import { InterviewerView } from './components/InterviewerView';
@@ -32,7 +34,7 @@ export default function App() {
     mode: 'practice',
     feedbackStyle: 'constructive',
     candidatePersona: '',
-    resume: localStorage.getItem('IP_STORED_RESUME'),
+    resume: localStorage.getItem('NIP_STORED_RESUME'),
     jdAnalysis: '',
     selectedInterviewers: ['tech', 'behavioral'],
     questionCount: 7,
@@ -61,32 +63,38 @@ export default function App() {
   });
 
   const [drillQuestions, setDrillQuestions] = useState<string[] | undefined>(undefined);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
 
-  // Load persistence
+  const hasSystemKeyAccess = !!user && user.email === 'hackerharnish@gmail.com';
+  const effectiveApiKey = apiKey || (hasSystemKeyAccess ? process.env.GEMINI_API_KEY : '');
+
+  // Load persistence and auth state
   useEffect(() => {
-    const savedKey = localStorage.getItem('IP_API_KEY');
-    const envKey = process.env.GEMINI_API_KEY;
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    const savedKey = localStorage.getItem('NIP_API_KEY');
 
     if (savedKey) {
       setApiKey(savedKey);
-    } else if (envKey && envKey.trim() !== '') {
-      setApiKey(envKey);
     }
 
-    const savedHistory = localStorage.getItem('IP_HISTORY');
+    const savedHistory = localStorage.getItem('NIP_HISTORY');
     if (savedHistory) {
       setState(prev => ({ ...prev, history: JSON.parse(savedHistory) }));
     }
 
-    const savedSkills = localStorage.getItem('IP_SKILLS');
+    const savedSkills = localStorage.getItem('NIP_SKILLS');
     if (savedSkills) {
       setState(prev => ({ ...prev, skills: JSON.parse(savedSkills) }));
     }
+
+    return () => unsubscribe();
   }, []);
 
   const saveApiKey = (key: string) => {
     setApiKey(key);
-    localStorage.setItem('IP_API_KEY', key);
+    localStorage.setItem('NIP_API_KEY', key);
   };
 
   const navigate = (newScreen: Screen) => {
@@ -97,8 +105,8 @@ export default function App() {
   const updateState = (updates: Partial<AppState>) => {
     setState(prev => {
       const next = { ...prev, ...updates };
-      if (updates.history) localStorage.setItem('IP_HISTORY', JSON.stringify(next.history));
-      if (updates.skills) localStorage.setItem('IP_SKILLS', JSON.stringify(next.skills));
+      if (updates.history) localStorage.setItem('NIP_HISTORY', JSON.stringify(next.history));
+      if (updates.skills) localStorage.setItem('NIP_SKILLS', JSON.stringify(next.skills));
       return next;
     });
   };
@@ -119,8 +127,8 @@ export default function App() {
         companyIntel: null,
       };
       updateState(reset);
-      localStorage.removeItem('IP_HISTORY');
-      localStorage.removeItem('IP_SKILLS');
+      localStorage.removeItem('NIP_HISTORY');
+      localStorage.removeItem('NIP_SKILLS');
       window.location.reload();
     }
   };
@@ -130,8 +138,8 @@ export default function App() {
       {/* Navigation */}
       <nav className="glass-nav sticky top-0 z-50 px-6 h-16 flex items-center justify-between">
         <button onClick={() => navigate(Screen.DASHBOARD)} className="flex items-center gap-3 group">
-           <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center text-black font-display font-black group-hover:scale-110 transition-transform">IP</div>
-           <span className="font-display font-extrabold text-xl tracking-tighter text-white italic group-hover:translate-x-1 transition-transform">Interview<span className="text-accent underline decoration-accent/40 decoration-4 underline-offset-4">Pro</span></span>
+           <div className="w-10 h-8 bg-accent rounded-lg flex items-center justify-center text-black font-display font-black group-hover:scale-110 transition-transform">NIP</div>
+           <span className="font-display font-extrabold text-xl tracking-tighter text-white italic group-hover:translate-x-1 transition-transform">NexusInterview<span className="text-accent underline decoration-accent/40 decoration-4 underline-offset-4">Pro</span></span>
         </button>
 
         <div className="hidden md:flex items-center gap-2">
@@ -141,15 +149,35 @@ export default function App() {
            <NavTab active={screen === Screen.GUIDE} onClick={() => navigate(Screen.GUIDE)} label="Guide" />
         </div>
 
-        <div 
-          onClick={() => {
-            const k = prompt('Update Intelligence Key:', apiKey);
-            if (k) saveApiKey(k);
-          }}
-          className="bg-accent/10 border border-accent/30 text-accent text-[9px] font-black uppercase tracking-[0.2em] px-4 py-2 rounded-xl cursor-pointer hover:bg-accent/20 transition-all flex items-center gap-2 shadow-lg shadow-accent/5"
-        >
-          <div className="w-1 h-1 bg-accent rounded-full animate-pulse"></div>
-          Gemini Intelligence Mode
+        <div className="flex items-center gap-4">
+          {user ? (
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-stone-400 font-medium">{user.displayName || user.email}</span>
+              <button 
+                onClick={logout}
+                className="bg-red-500/10 text-red-400 hover:bg-red-500/20 text-[9px] font-black uppercase tracking-[0.2em] px-4 py-2 rounded-xl transition-all border border-red-500/30"
+              >
+                Sign Out
+              </button>
+            </div>
+          ) : (
+            <button 
+              onClick={signInWithGoogle}
+              className="bg-white text-black hover:bg-stone-200 text-[9px] font-black uppercase tracking-[0.2em] px-4 py-2 rounded-xl transition-all shadow-lg"
+            >
+              Sign In
+            </button>
+          )}
+          <div 
+            onClick={() => {
+              const k = prompt('Update Intelligence Key:', apiKey);
+              if (k) saveApiKey(k);
+            }}
+            className="bg-accent/10 border border-accent/30 text-accent text-[9px] font-black uppercase tracking-[0.2em] px-4 py-2 rounded-xl cursor-pointer hover:bg-accent/20 transition-all flex items-center gap-2 shadow-lg shadow-accent/5"
+          >
+            <div className="w-1 h-1 bg-accent rounded-full animate-pulse"></div>
+            Gemini Intelligence Mode
+          </div>
         </div>
       </nav>
 
@@ -166,6 +194,7 @@ export default function App() {
               <HomeView 
                 state={state} 
                 apiKey={apiKey}
+                hasSystemKeyAccess={hasSystemKeyAccess}
                 onApiKeyChange={setApiKey}
                 onSaveApiKey={saveApiKey}
                 onAnalyze={(jd, level, mode, persona, feedbackStyle, analysis) => {
@@ -196,7 +225,7 @@ export default function App() {
             {screen === Screen.INTERVIEW && (
               <InterviewView
                 state={state}
-                apiKey={apiKey}
+                apiKey={effectiveApiKey || ""}
                 drillQuestions={drillQuestions}
                 onCancel={() => navigate(Screen.DASHBOARD)}
                 onComplete={(results) => {
@@ -251,7 +280,7 @@ export default function App() {
             {screen === Screen.ROADMAP && (
               <RoadmapView 
                 state={state} 
-                apiKey={apiKey}
+                apiKey={effectiveApiKey || ""}
                 onUpdateRoadmap={(roadmap) => updateState({ roadmap })}
                 onNavigate={navigate}
               />
@@ -260,7 +289,7 @@ export default function App() {
             {screen === Screen.KNOWLEDGE_BASE && (
               <KnowledgeBaseView 
                 state={state} 
-                apiKey={apiKey}
+                apiKey={effectiveApiKey || ""}
                 onNavigate={navigate}
               />
             )}
@@ -268,7 +297,7 @@ export default function App() {
             {screen === Screen.MCQ && (
               <MCQView
                 state={state}
-                apiKey={apiKey}
+                apiKey={effectiveApiKey || ""}
                 onUpdateSession={(mcqSession) => {
                   const pct = Math.round((mcqSession.score / mcqSession.questions.length) * 100);
                   const newHistory = [...state.history, { date: new Date().toLocaleDateString(), score: pct, type: 'mcq' as const, label: mcqSession.topic }];
@@ -281,7 +310,7 @@ export default function App() {
             {screen === Screen.INTEL && (
               <IntelModule 
                 state={state}
-                apiKey={apiKey}
+                apiKey={effectiveApiKey || ""}
                 onUpdateIntel={(intel) => updateState({ companyIntel: intel })}
                 onNavigate={navigate}
               />
@@ -290,7 +319,7 @@ export default function App() {
             {screen === Screen.QUIZ && (
               <JDQuizView 
                 state={state}
-                apiKey={apiKey}
+                apiKey={effectiveApiKey || ""}
                 onComplete={(scorePct) => {
                    const newHistory = [...state.history, { date: new Date().toLocaleDateString(), score: scorePct, type: 'quiz' as const, label: 'JD Validation' }];
                    const newSkills = [...state.skills].map(s => ({
@@ -306,7 +335,7 @@ export default function App() {
             {screen === Screen.SALARY && (
               <SalaryIntelligence 
                 state={state}
-                apiKey={apiKey}
+                apiKey={effectiveApiKey || ""}
                 onNavigate={navigate}
                 onUpdateLevel={(level) => updateState({ level })}
                 onUpdateCompany={(company) => updateState({ company })}
@@ -316,7 +345,7 @@ export default function App() {
             {screen === Screen.PATTERNS && (
               <PatternEngine 
                 state={state}
-                apiKey={apiKey}
+                apiKey={effectiveApiKey || ""}
                 onNavigate={navigate}
               />
             )}
@@ -330,7 +359,7 @@ export default function App() {
             {screen === Screen.QUESTION_BANK && (
               <QuestionBankView 
                 state={state}
-                apiKey={apiKey}
+                apiKey={effectiveApiKey || ""}
                 onNavigate={navigate}
                 onStartDrill={(qs) => {
                   setDrillQuestions(qs);
@@ -342,7 +371,7 @@ export default function App() {
             {screen === Screen.FLASHCARDS && (
               <FlashcardView 
                 state={state}
-                apiKey={apiKey}
+                apiKey={effectiveApiKey || ""}
                 onNavigate={navigate}
               />
             )}
